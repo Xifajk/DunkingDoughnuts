@@ -14,28 +14,33 @@ var powerSliderMove : boolean = true;
 static var currentAimValue : float = 0.0f;
 var aimSliderMove : boolean = true;
 
-var ballSlot: Rigidbody;
+var ballPrefab: Rigidbody;
+
+private var ballInstance : Rigidbody;
+private var ballController : BallController;
 
 function Start () {
-
+	
+	StartRound();
+	
 }
 
 function Update() {
 	
 	//this condition will check if both buttons have been pressed. If they have been, it will shoot the ball
 	
-	if ((aimButtonClicked == true) && (powerButtonClicked == true)){ 
+	if (aimButtonClicked && powerButtonClicked){ 
 	
 		hitOrMiss();
 			
 	} else {
 	
-		if (aimButtonClicked == false){ //if the Aim Button hasn't been clicked, the Aim Slider will continue moving up and down
+		if (!aimButtonClicked){ //if the Aim Button hasn't been clicked, the Aim Slider will continue moving up and down
 	
 			aimSlider();				//calls the function aimSlider to make the aim slider move up and down		   
 		}			   
 	
-		if (powerButtonClicked == false){ //if the Power Button hasn't been clicked, the Power Slider will continue moving up and down
+		if (!powerButtonClicked){ //if the Power Button hasn't been clicked, the Power Slider will continue moving up and down
 	
 			powerSlider();				//calls the function powerSlider to make the power slider move up and down
 			
@@ -50,7 +55,7 @@ function OnGUI(){
 	GUI.Button(Rect(1000, 650, barWidth * currentAimValue, 50), "");
 	GUI.enabled = true;
 	
-	if ((GUI.Button(Rect(100, 650, 100, 50), "POWER")) && Event.current.button ==0){ //if the user clicked on the POWER button
+	if ((GUI.Button(Rect(100, 650, 100, 50), "POWER")) && Event.current.button == 0){ //if the user clicked on the POWER button
 	
 		powerButtonClicked = true; //set the variable to true, thus knowing that the button was clicked and it will stop moving the slider
 		print("The Print Button has been Clicked");	//debugging purposes
@@ -110,47 +115,41 @@ function aimSlider(){ //this makes the AIM slider move up and down
 function hitOrMiss(){
 
 	currentPowerValue = Mathf.Round(currentPowerValue * 10f) / 10f;
-	Mathf.Round(currentPowerValue);
-	print(currentPowerValue);
 	currentAimValue = Mathf.Round(currentAimValue * 10f) / 10f;
-	print(currentAimValue);
 	
-	if ((currentPowerValue >= 0.1) && (currentPowerValue <= 0.3)) { //if the power is too low, the ball won't hit the target
-
-		Instantiate(ballSlot,transform.position,transform.rotation);
-		print("Too Low");
+	var mov : float;
+	var aim : float;
 	
+	if (currentPowerValue <= 0.3)
+	{
+		ballController.lowPower();
+		
+	} else if (currentPowerValue >= 0.6) {
+	
+		ballController.highPower();
+		
 	} else {
-		
-		if ((currentPowerValue >= 0.4) && (currentPowerValue <= 0.6)){ //if the power is correct, it MIGHT hit the target depending on the aim
-		
-			print("HIT");
-			
-		} else {
-		
-			if ((currentPowerValue >= 0.7) && (currentPowerValue <= 1.0)){ //if the power is too high, the ball won't hit the target
-			
-				print("Too Powerful");
-			}
-		}
+	
+		ballController.correctPower();		
 	}
-	
-	if ((currentAimValue >= 0.1) && (currentAimValue <= 0.4)) { //if the aim is off, the ball won't hit the target
-
-		print("To the Left");
-	
+		
+	if (currentAimValue <= 0.4) 
+	{
+		ballController.aimLeft();
+		
+	} else if (currentAimValue >= 0.6) 
+	{
+		ballController.aimRight();
+		
 	} else {
-		
-		if ((currentAimValue >= 0.5) && (currentAimValue <= 0.6)){ //if the aim is correct, it MIGHT hit the target depending on the power
-		
-			print("HIT");
-			
-		} else {
-		
-			if ((currentAimValue >= 0.7) && (currentAimValue <= 1.0)){ //if the aim is off, the ball won't hit the target
-			
-				print("To the Right");
-			}
-		}
+	
+		ballController.correctAim();		
 	}
+}
+
+function StartRound() {
+	
+	ballInstance = Instantiate(ballPrefab, Vector3(0, 0, -6.3), Quaternion.identity) as Rigidbody;
+	ballController = ballInstance.GetComponent(BallController);
+	
 }
