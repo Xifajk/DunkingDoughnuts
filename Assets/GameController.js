@@ -151,5 +151,4 @@ function StartRound() {
 	
 	ballInstance = Instantiate(ballPrefab, Vector3(0, 0, -6.3), Quaternion.identity) as Rigidbody;
 	ballController = ballInstance.GetComponent(BallController);
-	
 }
